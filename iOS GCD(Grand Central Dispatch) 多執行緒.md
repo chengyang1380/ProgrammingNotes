@@ -1,0 +1,304 @@
+# 簡單聊聊 iOS 多執行緒 多線程 GCD (Grand Central Dispatch)
+
+## 前言
+在目前的工作上，其實對於 Native GCD 的操作不多，有時候可能頂多會用到 
+[asyncAfter(deadline:execute:)](https://developer.apple.com/documentation/dispatch/dispatchqueue/2300020-asyncafter)
+``` swift
+
+DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+    // do something...			
+}
+```
+目前接觸到非同步問題，大多都依賴 [Bolts](https://github.com/BoltsFramework/Bolts-Swift) 這個套件（類似 [PromiseKit](https://github.com/mxcl/PromiseKit) )來完成這種非同步的問題。
+最常見的情境就是：例如可能有 A, B, C 三個 Task ，C 需要等 A 跟 B 都完成，才能做 C。
+在 `Bolts` 上大概會長這樣
+```swift
+let task: [Task<String>] = [A, B]
+// 看需求情境決定 task 要在哪個 Executor (執行緒上做) e.g., immediate, mainThread and queue(DispatchQueue)...
+Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak self] strings -> Task<Void> in
+     return C
+}.continueWithTask(.mainThread) { [weak self] (task) -> Task<Void> in
+     // do something...
+}
+```
+
+關於 iOS GCD (Grand Central Dispatch) 用的不夠多，還需要深入了解，所以藉此機會好好重新認識它。
+
+## 什麼是 GCD (Grand Central Dispatch)?
+
+簡單來說就是想完成以下幾件事情
+* 我們有時候想要把任務們集中起來管理，像是串接起來， A 做完 B 才能接著做，尤其是一些非同步的任務
+* 我們任務很多時可以利用 `CPU` 來把任務分給好幾個 `Thread` 來做，這樣就更有效率
+* 我們有時候一些不重要的任務，可以開其他 `Thread` 來執行
+
+那麼這時 Apple 就把這些事封裝成好用的工具 `GCD (Grand Central Dispatch)` 來供我們使用。
+瞭解這些使用原因後，後續就會更好理解！
+
+## 基本名詞解釋
+
+* **DispatchQueue**
+首先這是在 GCD 中最常見的東西，可以想像它是一個可以接收任務的容器(就是佇列)，然後有 `FIFO` (先進先出) 的特性，有三種類型
+
+> Main queue
+
+> Global queue
+
+> Custom queue
+
+並且可以 `Seria` (串行) 或 `Concurrent` (併發)
+
+
+* **Main Queue**
+是 `Seria` (串行)，系統的主線程，更新 UI `必定` 要在這，所以很常看到類似的 code
+```swift
+DispatchQueue.main.async {
+    // update UI...
+}
+```
+
+
+* **Global queue**
+是 `Concurrent` (併發)，適合放非 UI 相關任務在這，這就是系統的併發的隊列
+```swift
+DispatchQueue.global(qos: .userInitiated)
+```
+這裡的 `qos` 有分優先等級
+從最高至最低 
+* `userInteractive`
+* `userInitiated`
+* `default` 
+* `utility`
+* `background` 
+* `unspecified`
+
+那當然也不是所有的任務都用最高優先度 (`.userInteractive`) 最好 ，用多了也會造成 app 資源不足的問題。
+
+* **Custom queue**
+預設為 `Seria` (串行)，但也可以指定為 `Concurrent` (併發)，這是我們自己創建的 queue
+```swift
+// label 通常都是 bundle name (apple 教學推薦)，最好唯一碼
+DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
+```
+
+
+* **Seria (串行)**
+表示多個任務是串接在一起，佇列裡的任務會按照順序完成，聽起來很沒有效率，因為 A 任務完成 B 才能才能開始執行，但這樣的特性也帶來安全性，可以避免競爭危害 (Race condition)，有些資料就可以安全的共享。
+
+
+* **Concurrent (併發)**
+跟 `Seria` (串行）是相反的，等同所有任務一起去執行，不用誰等誰，是比較有效率的，但是任務因為沒有串再一起，所以各任務拿到結果的時間就會比較難預測。
+
+
+* **Synchronous (同步)**
+表示等它完成任務 (function) 完成後才返回，所以使用不當的話，可能會造成執行緒堵住或 deadlock ，像是 B 一直在等 A 完成才能做，但是 A 一直沒有完成，這時候就永遠不會結束。
+
+
+* **Asynchronous (非同步)**
+跟 Synchronous (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (Thread)。
+
+所以整合再一起會變成：
+
+* Seria Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
+* Seria Queue + Async => 開`一條`新的執行緒 `Thread`，照順序執行任務
+* Concurrent Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
+* Concurrent Queue + ASync => 開`多條`新的執行緒 `Thread`，同時執行任務 (**效率最好**)
+
+介紹完這些名詞後看這張圖可能會有一點點概念
+
+![](https://miro.medium.com/proxy/1*qrqnz__GlLozi-wn_A-wKQ.jpeg)
+
+## 實際例子
+看完了那麼多名詞介紹，沒有實際操作有時候可能還是一知半解，接下來我們就來看一點 Code。
+我們首先建立一個新的專案，只需要到 `ViewController.swift` 的 `viewDidLoad` 上操作就可以了。
+
+* Seria Queue + Sync
+那我們都知道 `Seria` 可以用 `Main queue` 或者 `Custom queue` 來完成，那我先建立一個 `Custom queue` 然後使用 `Sync` ，我們故意在 `task1` 中 delay 3 秒。
+```swift
+func task1() {
+    print("Task 1 started")
+    // make task1 take longer than task2
+    sleep(3)
+    print("Task 1 finished")
+}
+
+func task2() {
+    print("Task 2 started")
+    print("Task 2 finished")
+}
+		
+let serialQueue = DispatchQueue(label: "com.ccy.testGCD")
+serialQueue.sync {
+    task1()
+ }
+serialQueue.sync {
+    task2()
+}
+```
+Output:
+
+```
+Task 1 started
+Task 1 finished
+Task 2 started
+Task 2 finished
+```
+我們在 `task1` 中刻意延遲，但是因為 `Seria` + `Sync` 的關係， `task2` 還是要等 `task1` 完成，並且因為 `Seria` 所以只有用到一個 `Thread`。
+
+* Seria Queue + Async
+那一樣上面的例子，但這次我們把 `Sync` 改為 `Async`。
+Output:
+
+```
+Task 1 started
+Task 1 finished
+Task 2 started
+Task 2 finished
+```
+雖然我們改用了 `Async` 但因為我們的 `Queue` 還是 `Seria` 的，所以還是需要等前面的人完成才能接著做，這裡一樣只有用到一個 `Thread`，但因為用了 `Async` 所以這裡是不會造成 `Thread` 執行緒被堵住的問題。
+
+* Concurrent Queue + Sync
+這次我們把 `Seria` 改為 `Concurrent`，在 `init` 中有參數 `attributes` 可以調整。
+```swift
+func task1() {
+    print("Task 1 started")
+    // make task1 take longer than task2
+    sleep(3)
+    print("Task 1 finished")
+}
+
+func task2() {
+    print("Task 2 started")
+    print("Task 2 finished")
+}
+		
+let concurrentQueue = DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
+concurrentQueue.sync {
+    task1()
+ }
+concurrentQueue.sync {
+    task2()
+}
+```
+Output:
+
+```
+Task 1 started
+Task 1 finished
+Task 2 started
+Task 2 finished
+```
+結果也是一樣照順序執行，雖然我們使用了 `Concurrent` ，但因為 `Sync` 任務還是要依序執行， `Thread` 也只用到一個。
+
+* Concurrent Queue + Async
+跟上面一樣的 Code 但把 `Sync` 改為 `Async`。
+Output:
+
+```
+Task 1 started
+Task 2 started
+Task 2 finished
+Task 1 finished
+```
+因為我們是 `Concurrent queue` 並且 `Async`，所以我們的任務會直接全部一次出去，而且會看到不同 `Thread` 在執行。
+![image](https://cdn-images-1.medium.com/max/1600/1*o1d4aX_KMNb3ZigT4Qu6hw.png)
+
+## 其他常用使用
+我們接著看看其他常用的方法
+
+* **DispatchGroup**
+有了這個我們可以更好的追蹤不同 `Thread` 上的任務。想像一下我們有 A, B, C 三個任務，然後 A, B 在不同的 `Thread` 上執行， C 需要等待 A, B 都完成才能執行，這樣的情境就很適合使用 `DispatchGroup` 。
+   * `DispatchGroup.enter` 
+   讓 task 進入 group。
+
+   * `DispatchGroup.leave`
+   讓 task 在 group 已經執行結束。
+
+   * `DispatchGroup.wait`
+   這是會阻塞當前 `Thread` ，等待所有任務或者任務超時。
+   
+    * `DispatchGroup.wait(timeout:)`
+   也設定 `timeout` 參數，就可以拿到 `DispatchTimeoutResult` 得知道結果，e.g., success, timedOut，但是這結果是同步的。
+
+   * `DispatchGroup.notify`
+   非同步執行，所以不會阻塞當前 `Thread`，等 group 中任務都執行完畢。
+
+那我們來看一下實際的 Code：
+```swift
+let group = DispatchGroup()
+		
+let queue1 = DispatchQueue(label: "com.ccy.testGCD1", attributes: .concurrent)
+queue1.async(group: group) {
+  for i in 1...3 {
+    print("queue1: \(i)")
+  }
+}
+		
+let queue2 = DispatchQueue(label: "com.ccy.testGCD2", attributes: .concurrent)
+queue2.async(group: group) {
+  sleep(3)
+  for i in 1...3 {
+    print("queue2: \(i)")
+  }
+}
+  
+group.wait()
+print("wait a minute")
+group.notify(queue: .main) {
+  print("tasks finished")
+}
+```
+我們首先建立了一個 `DispatchGroup()` ，然後建立兩個 `queue` 都是 `concurrent`，特別的是我們故意在 `queue2` 中加 `sleep(3)` ，刻意延遲，然後還加了 `group.wait()`。
+
+Output:
+```
+queue1: 1
+queue1: 2
+queue1: 3
+queue2: 1
+queue2: 2
+queue2: 3
+wait a minute
+tasks finished
+```
+
+然後假設我們把 `groupt.wait()` 給拿掉，在執行一次
+
+Output:
+```
+wait a minute
+queue1: 1
+queue1: 2
+queue1: 3
+queue2: 1
+queue2: 2
+queue2: 3
+tasks finished
+```
+這樣的結果我們可以知道
+1.  `group.wait()` 是同步的，會卡住後面的 `print("wait a minute")` 。
+2.  `group.notify` 是非同步執行 closure ，等到裡面 task 都結束。
+
+
+* **延遲使用**
+最常見就是
+```swift
+DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+    // do something...			
+}
+```
+這樣就可以延遲一秒在做 closure 內的事情。
+
+## 結語
+我想看完這篇文章後應該對 iOS GCD 有基本的了解，當然可能還有更多細節的使用沒有探討到，或者你可能都是直接使用一些第三方套件來完成這些繁瑣的事情，但我希望看完後都有基本的概念。
+最後感謝您看到這裡，內文有任何錯誤，歡迎討論指教，謝謝您
+
+
+## 參考了
+* https://franksios.medium.com/ios-gcd多執行緒的說明與應用-c69a68d01da1
+* https://zhuanlan.zhihu.com/p/403841877
+* https://medium.com/@crafttang/gcd%E5%92%8Coperation-operationqueue-%E7%9C%8B%E8%BF%99%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B0%B1%E5%A4%9F%E4%BA%86-f38d50521543
+* https://medium.com/彼得潘的-swift-ios-app-開發教室/ios-30-dispatch-group-處理多個非同步操作-583fe2225a8f
+* https://waynestalk.com/dispatch-queue-tutorial/
+* https://bing-guo.github.io/2020/04/13/intv-ios-gcd/
+* https://www.appcoda.com.tw/grand-central-dispatch/
+* https://chy305chy.github.io/2018/11/29/GCD%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89%E2%80%94%E2%80%94Dispatch-Queue%E5%92%8CThread-Pool/

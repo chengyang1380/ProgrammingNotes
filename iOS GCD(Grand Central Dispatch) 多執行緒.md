@@ -1,7 +1,7 @@
 # 簡單聊聊 iOS 多執行緒 多線程 GCD (Grand Central Dispatch)
 
 ## 前言
-在目前的工作上，其實對於 Native GCD 的操作不多，有時候可能頂多會用到 
+在目前的工作上，其實對於 iOS GCD 的操作不多，有時候可能頂多會用到 
 [asyncAfter(deadline:execute:)](https://developer.apple.com/documentation/dispatch/dispatchqueue/2300020-asyncafter)
 ``` swift
 
@@ -22,7 +22,7 @@ Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak se
 }
 ```
 
-關於 iOS GCD (Grand Central Dispatch) 用的不夠多，還需要深入了解，所以藉此機會好好重新認識它。
+近期發現對於 iOS GCD (Grand Central Dispatch) 好像只懂基礎概念，應該還需要深入了解，所以藉此機會好好重新認識它。
 
 ## 什麼是 GCD (Grand Central Dispatch)?
 
@@ -94,16 +94,16 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 
 
 * **Asynchronous (非同步)**
-跟 Synchronous (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (Thread)。
+跟 `Synchronous` (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (`Thread`)。
 
 所以整合再一起會變成：
 
 * Seria Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
 * Seria Queue + Async => 開`一條`新的執行緒 `Thread`，照順序執行任務
 * Concurrent Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
-* Concurrent Queue + ASync => 開`多條`新的執行緒 `Thread`，同時執行任務 (**效率最好**)
+* Concurrent Queue + Async => 開`多條`新的執行緒 `Thread`，同時執行任務 (**效率最好**)
 
-介紹完這些名詞後看這張圖可能會有一點點概念
+介紹完這些名詞後看這張圖可能就有一點點概念
 
 ![](https://miro.medium.com/proxy/1*qrqnz__GlLozi-wn_A-wKQ.jpeg)
 
@@ -112,6 +112,7 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 我們首先建立一個新的專案，只需要到 `ViewController.swift` 的 `viewDidLoad` 上操作就可以了。
 
 * Seria Queue + Sync
+
 那我們都知道 `Seria` 可以用 `Main queue` 或者 `Custom queue` 來完成，那我先建立一個 `Custom queue` 然後使用 `Sync` ，我們故意在 `task1` 中 delay 3 秒。
 ```swift
 func task1() {
@@ -145,6 +146,7 @@ Task 2 finished
 我們在 `task1` 中刻意延遲，但是因為 `Seria` + `Sync` 的關係， `task2` 還是要等 `task1` 完成，並且因為 `Seria` 所以只有用到一個 `Thread`。
 
 * Seria Queue + Async
+
 那一樣上面的例子，但這次我們把 `Sync` 改為 `Async`。
 Output:
 
@@ -157,6 +159,7 @@ Task 2 finished
 雖然我們改用了 `Async` 但因為我們的 `Queue` 還是 `Seria` 的，所以還是需要等前面的人完成才能接著做，這裡一樣只有用到一個 `Thread`，但因為用了 `Async` 所以這裡是不會造成 `Thread` 執行緒被堵住的問題。
 
 * Concurrent Queue + Sync
+
 這次我們把 `Seria` 改為 `Concurrent`，在 `init` 中有參數 `attributes` 可以調整。
 ```swift
 func task1() {
@@ -190,6 +193,7 @@ Task 2 finished
 結果也是一樣照順序執行，雖然我們使用了 `Concurrent` ，但因為 `Sync` 任務還是要依序執行， `Thread` 也只用到一個。
 
 * Concurrent Queue + Async
+
 跟上面一樣的 Code 但把 `Sync` 改為 `Async`。
 Output:
 
@@ -201,6 +205,44 @@ Task 1 finished
 ```
 因為我們是 `Concurrent queue` 並且 `Async`，所以我們的任務會直接全部一次出去，而且會看到不同 `Thread` 在執行。
 ![image](https://cdn-images-1.medium.com/max/1600/1*o1d4aX_KMNb3ZigT4Qu6hw.png)
+
+* DispatchQoS
+
+我們知道 `qos` 是有優先度的， 
+`userInteractive`> `userInitiated` > `default` > `utility` > `background` > `unspecified`
+我們來測試看看
+```swift
+let queue1 = DispatchQueue.global(qos: .userInteractive)
+let queue2 = DispatchQueue.global(qos: .userInitiated)
+		
+queue1.async {
+  for i in 0...5 {
+    print("queue1: \(i)")
+  }
+}
+		
+queue2.async {
+  for i in 0...5 {
+     print("queue2: \(i)")
+  }
+}
+```
+Output:
+```
+queue1: 0
+queue2: 0
+queue1: 1
+queue2: 1
+queue1: 2
+queue1: 3
+queue1: 4
+queue1: 5
+queue2: 2
+queue2: 3
+queue2: 4
+queue2: 5
+```
+因為兩個的優先度其實都很高，第一與第二，而且因為 `global` (`Concurrent`) 的，所以開了不同 `Thread` 在執行，所以結果順序其實每次都不一定一樣，但能看得出來 `queue1` 會比較被優先處理完畢。
 
 ## 其他常用使用
 我們接著看看其他常用的方法
@@ -286,7 +328,7 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
     // do something...			
 }
 ```
-這樣就可以延遲一秒在做 closure 內的事情。
+這樣就可以延遲一秒，然後 closure 才會開始執行。
 
 ## 結語
 我想看完這篇文章後應該對 iOS GCD 有基本的了解，當然可能還有更多細節的使用沒有探討到，或者你可能都是直接使用一些第三方套件來完成這些繁瑣的事情，但我希望看完後都有基本的概念。

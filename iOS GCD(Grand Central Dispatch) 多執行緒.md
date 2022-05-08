@@ -45,11 +45,11 @@ Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak se
 
 > Custom queue
 
-並且可以 `Seria` (串行) 或 `Concurrent` (併發)
+並且可以 `Serial` (串行) 或 `Concurrent` (併發)
 
 
 * **Main Queue**
-是 `Seria` (串行)，系統的主線程，更新 UI `必定` 要在這，所以很常看到類似的 code
+是 `Serial` (串行)，系統的主線程，更新 UI `必定` 要在這，所以很常看到類似的 code
 ```swift
 DispatchQueue.main.async {
     // update UI...
@@ -74,19 +74,19 @@ DispatchQueue.global(qos: .userInitiated)
 那當然也不是所有的任務都用最高優先度 (`.userInteractive`) 最好 ，用多了也會造成 app 資源不足的問題。
 
 * **Custom queue**
-預設為 `Seria` (串行)，但也可以指定為 `Concurrent` (併發)，這是我們自己創建的 queue
+預設為 `Serial` (串行)，但也可以指定為 `Concurrent` (併發)，這是我們自己創建的 queue
 ```swift
 // label 通常都是 bundle name (apple 教學推薦)，最好唯一碼
 DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 ```
 
 
-* **Seria (串行)**
+* **Serial (串行)**
 表示多個任務是串接在一起，佇列裡的任務會按照順序完成，聽起來很沒有效率，因為 A 任務完成 B 才能才能開始執行，但這樣的特性也帶來安全性，可以避免競爭危害 (Race condition)，有些資料就可以安全的共享。
 
 
 * **Concurrent (併發)**
-跟 `Seria` (串行）是相反的，等同所有任務一起去執行，不用誰等誰，是比較有效率的，但是任務因為沒有串再一起，所以各任務拿到結果的時間就會比較難預測。
+跟 `Serial` (串行）是相反的，等同所有任務一起去執行，不用誰等誰，是比較有效率的，但是任務因為沒有串再一起，所以各任務拿到結果的時間就會比較難預測。
 
 
 * **Synchronous (同步)**
@@ -98,8 +98,8 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 
 所以整合再一起會變成：
 
-* Seria Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
-* Seria Queue + Async => 開`一條`新的執行緒 `Thread`，照順序執行任務
+* Serial Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
+* Serial Queue + Async => 開`一條`新的執行緒 `Thread`，照順序執行任務
 * Concurrent Queue + Sync  => 不會開新的執行緒 `Thread`，照順序執行任務
 * Concurrent Queue + Async => 開`多條`新的執行緒 `Thread`，同時執行任務 (**效率最好**)
 
@@ -111,9 +111,9 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 看完了那麼多名詞介紹，沒有實際操作有時候可能還是一知半解，接下來我們就來看一點 Code。
 我們首先建立一個新的專案，只需要到 `ViewController.swift` 的 `viewDidLoad` 上操作就可以了。
 
-* Seria Queue + Sync
+* Serial Queue + Sync
 
-那我們都知道 `Seria` 可以用 `Main queue` 或者 `Custom queue` 來完成，那我先建立一個 `Custom queue` 然後使用 `Sync` ，我們故意在 `task1` 中 delay 3 秒。
+那我們都知道 `Serial` 可以用 `Main queue` 或者 `Custom queue` 來完成，那我先建立一個 `Custom queue` 然後使用 `Sync` ，我們故意在 `task1` 中 delay 3 秒。
 ```swift
 func task1() {
     print("Task 1 started")
@@ -143,9 +143,9 @@ Task 1 finished
 Task 2 started
 Task 2 finished
 ```
-我們在 `task1` 中刻意延遲，但是因為 `Seria` + `Sync` 的關係， `task2` 還是要等 `task1` 完成，並且因為 `Seria` 所以只有用到一個 `Thread`。
+我們在 `task1` 中刻意延遲，但是因為 `Serial` + `Sync` 的關係， `task2` 還是要等 `task1` 完成，並且因為 `Serial` 所以只有用到一個 `Thread`。
 
-* Seria Queue + Async
+* Serial Queue + Async
 
 那一樣上面的例子，但這次我們把 `Sync` 改為 `Async`。
 Output:
@@ -156,11 +156,11 @@ Task 1 finished
 Task 2 started
 Task 2 finished
 ```
-雖然我們改用了 `Async` 但因為我們的 `Queue` 還是 `Seria` 的，所以還是需要等前面的人完成才能接著做，這裡一樣只有用到一個 `Thread`，但因為用了 `Async` 所以這裡是不會造成 `Thread` 執行緒被堵住的問題。
+雖然我們改用了 `Async` 但因為我們的 `Queue` 還是 `Serial` 的，所以還是需要等前面的人完成才能接著做，這裡一樣只有用到一個 `Thread`，但因為用了 `Async` 所以這裡是不會造成 `Thread` 執行緒被堵住的問題。
 
 * Concurrent Queue + Sync
 
-這次我們把 `Seria` 改為 `Concurrent`，在 `init` 中有參數 `attributes` 可以調整。
+這次我們把 `Serial` 改為 `Concurrent`，在 `init` 中有參數 `attributes` 可以調整。
 ```swift
 func task1() {
     print("Task 1 started")

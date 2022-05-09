@@ -36,8 +36,11 @@ Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak se
 
 ## 基本名詞解釋
 
+* **Thread**
+首先是執行緒 `Thread` ，可以說是最核心的東西，它由裝置上的 CPU 來決定數量，可以想像它像是工廠裡的流水線，有越多條流水線，處理事情的速度就可以越快，但是我們是無法直接操控它。
+
 * **DispatchQueue**
-首先這是在 GCD 中最常見的東西，可以想像它是一個可以接收任務的容器(就是佇列)，然後有 `FIFO` (先進先出) 的特性，有三種類型
+這是在 GCD 中最常見的東西，可以想像它是一個可以接收任務的容器(就是佇列)，然後有 `First in, first out (FIFO)` (先進先出) 的特性，有三種類型
 
 > Main queue
 
@@ -45,7 +48,7 @@ Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak se
 
 > Custom queue
 
-並且可以 `Serial` (串行) 或 `Concurrent` (併發)
+並且可以 `Serial` (串行) 或 `Concurrent` (併發)，那不管是在主執行緒或背景執行緒上，一個 `Queue` (佇列)是一個可 `Sync` (同步) 或 `Async` (非同步) 執行的代碼塊，當 `Queue` (佇列)生成後，它會被自動分配到 CPU 的任一核心上(某個 `Thread`)，多個 `Queue` (佇列) 同樣會被相對應管理，這部分我們開發者就不用處理了，因為 iOS 上有一個 `a pool of threads` (執行緒池)，它是除了主執行緒以外的執行緒集合，系統會挑選一個以上的執行緒來使用，依照你建立的佇列數量，以及建立方式。
 
 
 * **Main Queue**
@@ -55,6 +58,7 @@ DispatchQueue.main.async {
     // update UI...
 }
 ```
+我們在使用 `Main Queue` 時要格外小心，它應該要長期維持在閒置可用的狀態，這樣才可以應付使用者操作帶來的介面變動需求。
 
 
 * **Global queue**

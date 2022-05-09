@@ -48,7 +48,7 @@ Task.whenAllResult(task).continueOnSuccessWithTask(.queue(.global())) { [weak se
 
 > Custom queue
 
-並且可以 `Serial` (串行) 或 `Concurrent` (併發)，那不管是在主執行緒或背景執行緒上，一個 `Queue` (佇列)是一個可 `Sync` (同步) 或 `Async` (非同步) 執行的代碼塊，當 `Queue` (佇列)生成後，它會被自動分配到 CPU 的任一核心上(某個 `Thread`)，多個 `Queue` (佇列) 同樣會被相對應管理，這部分我們開發者就不用處理了，因為 iOS 上有一個 `a pool of threads` (執行緒池)，它是除了主執行緒以外的執行緒集合，系統會挑選一個以上的執行緒來使用，依照你建立的佇列數量，以及建立方式。
+並且可以 `Serial` (串行) 或 `Concurrent` (併發)，那不管是在主執行緒或背景執行緒上，一個 `Queue` (佇列)是一個可 `Sync` (同步) 或 `Async` (非同步) 執行的 `Closure` 代碼塊，當 `Queue` (佇列)生成後，它會被自動分配到 CPU 的任一核心上(某個 `Thread`)，多個 `Queue` (佇列) 同樣會被相對應管理，這部分我們開發者就不用處理了，因為 iOS 上有一個 `a pool of threads` (執行緒池)，它是除了主執行緒以外的執行緒集合，系統會挑選一個以上的執行緒來使用，依照你建立的佇列數量，以及建立方式。
 
 
 * **Main Queue**
@@ -94,11 +94,13 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 
 
 * **Synchronous (同步)**
-表示等它完成任務 (function) 完成後才返回，所以使用不當的話，可能會造成執行緒堵住或 deadlock ，像是 B 一直在等 A 完成才能做，但是 A 一直沒有完成，這時候就永遠不會結束。
+表示等它完成任務 (function) 完成後才返回，所以使用不當的話，可能會造成執行緒堵住或 deadlock ，像是 B 一直在等 A 完成才能做，但是 A 一直沒有完成，這時候就永遠不會結束，可以想像跟打電話一樣，當你只有一台手機，然後撥打電話給朋友時，你不結束通話就無法再打給其他人。
 
 
 * **Asynchronous (非同步)**
-跟 `Synchronous` (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (`Thread`)。
+跟 `Synchronous` (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (`Thread`)，用剛剛打電話的例子來說，這時你就變成有多台手機，然後撥打電話給朋友時，你想再打給其他人也可以了(開啟新執行緒）。
+
+`注意：雖然非同步 Asynchronous 有開新執行緒的能力，但不一定會開，這跟任務所指定的隊列類型(Serial, Concurrent)有關，下方會說明。`
 
 所以整合再一起會變成：
 

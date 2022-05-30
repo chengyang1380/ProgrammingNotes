@@ -100,7 +100,12 @@ DispatchQueue(label: "com.ccy.testGCD", attributes: .concurrent)
 * **Asynchronous (非同步)**
 跟 `Synchronous` (同步)相反，表示它不用等前面任務好了才可以下一個任務，所以他不會造成執行緒堵住的問題，因為會開啟新的線程 (`Thread`)，用剛剛打電話的例子來說，這時你就變成有多台手機，然後撥打電話給朋友時，你想再打給其他人也可以了(開啟新執行緒）。
 
-`注意：雖然非同步 Asynchronous 有開新執行緒的能力，但不一定會開，這跟任務所指定的隊列類型(Serial, Concurrent)有關，下方會說明。`
+```
+注意：雖然非同步 Asynchronous 有開新執行緒的能力，但不一定會開，這跟任務所指定的隊列類型(Serial, Concurrent)有關，下方會說明。
+
+sync 與 async 和 serial 與 concurrent 是可以互相搭配使用，下面會說明，sync 可搭配 serial 也可以搭配 concurrent ，相同的 async 也都可以搭配使用，
+最主要是影響是當前的 Thread 是否會阻塞。
+```
 
 所以整合再一起會變成：
 
@@ -335,6 +340,122 @@ DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
 }
 ```
 這樣就可以延遲一秒，然後 closure 才會開始執行。
+
+## 再複習一次，看一些 Deadlock 情境
+*Case 1*
+```swift
+print("task 1")
+DispatchQueue.main.sync {
+    print("task 2")
+}
+print("task 3")
+```
+執行了上面的 code 會有什麼結果勒？
+
+output:
+
+```
+task 1
+````
+
+然後就會 Crash 了，為什麼會這樣勒？
+* 首先裡面用到了 `sync` 同步，所以是會卡 `Thread` 的。
+* 然後是會執行在 `Main thread` 上。
+* `task 2` 是被包在 `sync` (同步)裡面
+
+所以就等於 `task 3` 跟 `task 2` 在互相等對方，依照順序來說是 `task 1` 先被處理，再來是啟動了 `sync thread` ，這時 `task 2` 加入隊列裡，但還未執行，再來是處理 `task 3` ，所以是 `task 3` 在 `task 2` 前面 ，可是在 `task 3` 的前面有一個在 `Main thread` 同步的任務，所以又要等它完成才能繼續，這就造成了 `Deadlock` 。
+
+假如我們把上面的 `sync` 改成 `async`
+
+```swift
+print("task 1")
+DispatchQueue.main.async {
+    print("task 2")
+}
+print("task 3")
+```
+
+output:
+
+```
+task 1
+task 3
+task 2
+```
+因為變成 `async` (非同步)的，所以就無需等它完成，就可以繼續執行。
+又或者我們假如把 `main thread` 改成 `global thread`。
+
+```swift
+print("task 1")
+DispatchQueue.global().sync {
+    print("task 2")
+}
+print("task 3")
+```
+
+output:
+
+```
+task 1
+task 2
+task 3
+```
+
+執行了 `task 1` 後會馬上遇到一個 `sync thread` ，所以我們要等它完成才能繼續走，但是它是開了其他 `Thread` 執行，所以 `task 3` 跟 `task 2` 是會在不同的 `Thread` 執行，所以不會有像前面的例子，兩個任務互相等對方的問題。
+再來我們看一個比較複雜的問題，結合了上述觀念，你應該會知道結果。
+
+*Case 2*
+```swift
+let serialQueue = DispatchQueue(label: "com.ccy.testGCD") // serial
+print("task 1")
+serialQueue.async {
+    print("task 2")
+    serialQueue.sync {
+        print("task 3")
+    }
+    print("task 4")
+}
+print("task 5")
+```
+
+output:
+
+```
+task 1
+task 5
+task 2
+```
+
+然後就 Crash 了，首先 `DispatchQueue(label:)` 是會生出 `Serial` (串行) 的隊列，再來就馬上執行了 `task 1` ，過來會遇到 `async` (非同步)的且是 `serial` 的隊列，因為是 `async` 不會卡 `thread` 所以會繼續執行，直接到 `task 5` ，然後回到 `task 2` ，執行後就遇到我們前面看到的情境一樣 `deadlock` 了， `task 3` 跟 `task 4` 又會互相等待對方。
+那我們改良一下，我們把 `task 1` 之後，把本來的 `serialQueue` 改成 `async global queue` 來執行。
+
+```swift
+let serialQueue = DispatchQueue(label: "com.ccy.testGCD")
+print("task 1")
+DispatchQueue.global().async {
+    print("task 2")
+    serialQueue.sync {
+        print("task 3")
+    }
+    print("task 4")
+}
+print("task 5")
+```
+
+output:
+
+```
+task 1
+task 5
+task 2
+task 3
+task 4
+```
+
+這樣就解決了剛剛 Crash 的問題，一開始執行了 `task 1` 接著遇到一個 `async global queue` ，因為它是 `async` 我們不必等它，所以會先執行到 `task 5` ，再來就到 `task 2` ，關鍵的 `serialQueue.sync` 它是同步的，所以 `task 3` 結束後才可以執行到 `task 4 `。
+大家看完上述兩個 case ，相信大概對 `deadlock` 比較不陌生了，也知道最容易發生在於 `sync` (同步) 的情況，有時這些 `thread` 上互相依賴的關係下，會一層嵌一層，一不小心就太複雜，所以使用上一定要小心。
+
+
 
 ## 結語
 我想看完這篇文章後應該對 iOS GCD 有基本的了解，當然可能還有更多細節的使用沒有探討到，或者你可能都是直接使用一些第三方套件來完成這些繁瑣的事情，但我希望看完後都有基本的概念。

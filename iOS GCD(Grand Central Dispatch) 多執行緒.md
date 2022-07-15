@@ -360,10 +360,10 @@ task 1
 
 然後就會 Crash 了，為什麼會這樣勒？
 * 首先裡面用到了 `sync` 同步，所以是會卡 `Thread` 的。
-* 然後是會執行在 `Main thread` 上。
+* 然後是會執行在 `Main queue` 上。
 * `task 2` 是被包在 `sync` (同步)裡面
 
-所以就等於 `task 3` 跟 `task 2` 在互相等對方，依照順序來說是 `task 1` 先被處理，再來是啟動了 `sync thread` ，這時 `task 2` 加入隊列裡，但還未執行，再來是處理 `task 3` ，所以是 `task 3` 在 `task 2` 前面 ，可是在 `task 3` 的前面有一個在 `Main thread` 同步的任務，所以又要等它完成才能繼續，這就造成了 `Deadlock` 。
+所以就等於 `task 3` 跟 `task 2` 在互相等對方，依照順序來說是 `task 1` 先被處理，再來是啟動了 `sync queue` ，這時 `task 2` 加入隊列裡，但還未執行，再來是處理 `task 3` ，所以是 `task 3` 在 `task 2` 前面 ，可是在 `task 3` 的前面有一個在 `Main thread` 同步的任務，所以又要等它完成才能繼續，這就造成了 `Deadlock` 。
 
 假如我們把上面的 `sync` 改成 `async`
 
@@ -383,7 +383,7 @@ task 3
 task 2
 ```
 因為變成 `async` (非同步)的，所以就無需等它完成，就可以繼續執行。
-又或者我們假如把 `main thread` 改成 `global thread`。
+又或者我們假如把 `main queue` 改成 `global queue`。
 
 ```swift
 print("task 1")

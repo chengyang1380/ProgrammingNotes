@@ -148,7 +148,7 @@ git_branch("master")
 
 app_identifier(["com.xxx.debug", "com.xxx.debug.NotificationServiceExtension", "com.xxx", "com.xxx.NotificationServiceExtension"])
 
-# 假如有分環境的話可以
+# 假如有分環境的話可以在這設定，或者可以直接在 Fastfile 內，要執行 match 的地方設定好參數，這邊就不用設定了
 type 'development'
 app_identifier ["com.xxx.debug", "com.xxx.debug.NotificationServiceExtension"]
 
@@ -156,9 +156,8 @@ for_lane :release do
     type 'appstore'
     app_identifier ["com.xxx", "com.xxx.NotificationServiceExtension"]
 end
-# 或者可以不用在這設定，可以直接在 Fastfile 內，要執行 match 的地方設定好參數
 
-ENV['MATCH_GIT_PRIVATE_KEY'] = 'fastlane/gitPrivateKeyPath' # 你的 git private key 路徑
+# 這邊通常都是機密，我是放在 Azure Piepline 上當變數，並加密
 ENV['MATCH_PASSWORD'] = 'xxx'
 ENV['MATCH_KEYCHAIN_PASSWORD'] = 'xxx'
 ```

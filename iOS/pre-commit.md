@@ -128,6 +128,11 @@ Check for added large files..............................................Passed
 # 最後
 
 ---
+假如有特別情境，想暫時跳過檢查，可以
+
+```bash
+git commit --no-verify -m "YOUR COMMIT MESSAGE"
+```
 
 在看各團隊需要什麼檢查規則，例如我這邊額外加了 swiftLint 的規範。
 

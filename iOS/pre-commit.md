@@ -1,6 +1,6 @@
 # pre-commit
 
-![IMG_0568.JPG](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/IMG_0568.jpg?raw=true) Photo in New Zealand — Franz Josef Glacier
+![IMG_0568.JPG](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/pre-commit/IMG_0568.jpg?raw=true) Photo in New Zealand — Franz Josef Glacier
 
 [pre-commit](https://pre-commit.com) 簡單來說，就是當我們在 git 上要 commit 時會先檢查程式碼的工具，可以輕鬆規範我們的程式碼風格。
 
@@ -120,10 +120,10 @@ Check for added large files..............................................Passed
 
 ### 使用 Sourcetree
 被檢查出有問題
-![截圖 2024-04-25 14.25.06.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/%25E6%2588%25AA%25E5%259C%2596_2024-04-25_14.25.06.png?raw=true)
+![截圖 2024-04-25 14.25.06.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/pre-commit/%25E6%2588%25AA%25E5%259C%2596_2024-04-25_14.25.06.png?raw=true)
 
 檢查都通過
-![截圖 2024-04-25 14.26.16.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/%25E6%2588%25AA%25E5%259C%2596_2024-04-25_14.26.16.png?raw=true)
+![截圖 2024-04-25 14.26.16.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/pre-commit/%25E6%2588%25AA%25E5%259C%2596_2024-04-25_14.26.16.png?raw=true)
 
 # 最後
 

@@ -1,5 +1,7 @@
 # Xcode essentials | Apple
 
+![Taipei — Tamsui](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC24/Xcode%20essentials%20%7C%20Apple/Taipei%20—%20Tamsui.jpeg?raw=true)
+
 主要是看了 WWDC24 Xcode essentials | Apple 的筆記，重新認識了 Xcode，發現許多方便的功能。
 
 先附上影片連結：

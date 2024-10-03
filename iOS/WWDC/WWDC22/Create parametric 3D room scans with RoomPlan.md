@@ -1,7 +1,7 @@
 # Create parametric 3D room scans with RoomPlan
 
 ![**New ZealandTe Anau**](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Create%20parametric%203D%20room%20scans%20with%20RoomPlan/APC_3795_copy.jpeg?raw=true)
-New ZealandTe Anau
+New Zealand - Te Anau
 
 觀看 **Create parametric 3D room scans with RoomPlan** 筆記
 

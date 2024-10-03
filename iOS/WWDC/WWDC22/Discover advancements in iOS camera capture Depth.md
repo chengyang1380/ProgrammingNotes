@@ -1,6 +1,7 @@
 # Discover advancements in iOS camera capture: Depth, focus, and multitasking
 
-![IMG_81992.jpeg](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/IMG_81992.jpeg?raw=true)
+![IMG_81992.jpeg](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/IMG_81992.jpeg?raw=true)
+
 New Zealand — Deer Park Heights Queenstown
 
 觀看 **WWDC22 Discover advancements in iOS camera capture: Depth, focus, and multitasking** 筆記
@@ -16,7 +17,7 @@ LiDAR 掃描儀的 API 在 iPadOS 13.4 的 ARKit 中首次引用，細節可參�
 
 LiDAR 深度相機可以提供多種格式
 
-![截圖 2024-09-18 16.33.52.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.33.52.png?raw=true)
+![截圖 2024-09-18 16.33.52.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.33.52.png?raw=true)
 
 LiDAR Depth Camera
 
@@ -38,7 +39,7 @@ TrueDepth, Dual, Dual Wide, and Triple
 
 使用 `AVFoundation` 會比用 `ARKit` 好嗎？
 
-![截圖 2024-09-18 16.49.04.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.49.04.png?raw=true)
+![截圖 2024-09-18 16.49.04.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.49.04.png?raw=true)
 
 假如要知道更多 `AVFoundation` 的 depth 細節，可參考 WWDC17 [Capturing Depth in iPhone Photography](https://developer.apple.com/wwdc17/507)
 
@@ -46,7 +47,7 @@ TrueDepth, Dual, Dual Wide, and Triple
 
 iOS 15.4 有一項新功能 `Prioritize faces` ，焦點和曝光系統將為臉部優先（iPhone 13 Pro 首次出現電影模式，在 iOS 15.4 才開放此 API）
 
-![截圖 2024-09-18 16.59.19.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.59.19.png?raw=true)
+![截圖 2024-09-18 16.59.19.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_16.59.19.png?raw=true)
 
 ## Advanced streaming
 
@@ -60,7 +61,7 @@ iOS 15.4 有一項新功能 `Prioritize faces` ，焦點和曝光系統將為臉
 
 - Video, audio, photos, and more
 
-![截圖 2024-09-18 17.20.26.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.20.26.png?raw=true)
+![截圖 2024-09-18 17.20.26.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.20.26.png?raw=true)
 
 ### Multiple video outputs
 
@@ -73,15 +74,15 @@ iOS 15.4 有一項新功能 `Prioritize faces` ，焦點和曝光系統將為臉
 - Orientation
 - Pixel Format
 
-![截圖 2024-09-18 17.30.28.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.30.28.png?raw=true)
+![截圖 2024-09-18 17.30.28.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.30.28.png?raw=true)
 
 更多 `AVCaptureVideoDataOutput` 可參考 [**TN3121: Selecting a pixel format for an AVCaptureVideoDataOutput**](https://developer.apple.com/documentation/Technotes/tn3121-selecting-a-pixel-format-for-an-avcapturevideodataoutput)
 
 iOS 16/ iPad OS 16 除了剛上述說的可以使用多個影片數據輸出，還可以從 `AVCaptureVideoDataOutput` 和 `AVCaptureAudoiDataOutput` 接收數據時，使用 `AVCaptureMovieFileOutput` 進行錄製。
 
-![截圖 2024-09-18 17.34.21.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.34.21.png?raw=true)
+![截圖 2024-09-18 17.34.21.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.34.21.png?raw=true)
 
-![截圖 2024-09-18 17.35.13.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.35.13.png?raw=true)
+![截圖 2024-09-18 17.35.13.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.35.13.png?raw=true)
 
 ## Multitasking camera access
 
@@ -91,11 +92,11 @@ iOS 16/ iPad OS 16 除了剛上述說的可以使用多個影片數據輸出，�
 
 但現在可以了多任務了，只是會提醒使用者影片的品質會變差
 
-![截圖 2024-09-18 17.40.44.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.40.44.png?raw=true)
+![截圖 2024-09-18 17.40.44.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.40.44.png?raw=true)
 
 在 iOS 16 後新增的 API
 
-![截圖 2024-09-18 17.41.46.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.41.46.png?raw=true)
+![截圖 2024-09-18 17.41.46.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.41.46.png?raw=true)
 
 ### Fullscreen camera experience
 
@@ -119,11 +120,11 @@ Choosing less demanding video formats
 
 現在 App 的用戶可以在 iPad 上進行多任務處理時並接聽視訊電話
 
-![截圖 2024-09-18 17.48.49.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.48.49.png?raw=true)
+![截圖 2024-09-18 17.48.49.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.48.49.png?raw=true)
 
 `AVKit` 在 iOS 15 中引入了 API  
 
-![截圖 2024-09-18 17.49.04.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.49.04.png?raw=true)
+![截圖 2024-09-18 17.49.04.png](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC22/Discover%20advancements%20in%20iOS%20camera%20capture%20Depth/%25E6%2588%25AA%25E5%259C%2596_2024-09-18_17.49.04.png?raw=true)
 
 此部分的細節可參考 [**Adopting Picture in Picture for video calls**](https://developer.apple.com/documentation/avkit/adopting-picture-in-picture-for-video-calls)
 

@@ -170,7 +170,7 @@ struct CounterTests {
 
     @Test
     func increment() async throws {
-		    let store = TestStore(initialState: Counter.State()) {
+      let store = TestStore(initialState: Counter.State()) {
             Counter()
         }
         await store.send(.increment) {
@@ -365,11 +365,11 @@ enum Action {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
 			  // ...
-				+ case .setCount(let text):
-				+   if let value = Int(text) {
-				+     state.count = value
-				+   }
-				+   return .none
+			+ case .setCount(let text):
+			+   if let value = Int(text) {
+			+     state.count = value
+			+   }
+			+   return .none
 			  // ...
 		}
 ```
@@ -429,9 +429,9 @@ Reduce 的部分，就可以變成這樣
 
 ```swift
 TextField(
-		String(store.count),
+    String(store.count),
     text: Binding(
-		    get: { store.countString },
+        get: { store.countString },
         set: { store.send(.setCount($0)) }
     )
 )
@@ -529,7 +529,7 @@ extension Counter {
 
 ```swift
 struct CounterView: View {
-	@Bindable var store: StoreOf<Counter>
+  @Bindable var store: StoreOf<Counter>
   var body: some View {
       VStack {
 +       checkLabel(with: store.checkResult)
@@ -593,7 +593,7 @@ struct State: Equatable {
 
 var body: some ReducerOf<Self> {
 		Reduce { state, action in
-				switch action {
+			switch action {
 			- case .reset:
 			+ case .playNext:
 			    state.count = 0
@@ -693,10 +693,10 @@ store = TestStore(initialState: Counter.State()) {
 
 @Test
 func playNext() async throws {
-		await store.send(.playNext) {
-    $0.count = 0
-		$0.secret = 5        
-		}
+    await store.send(.playNext) {
+        $0.count = 0
+        $0.secret = 5        
+    }
 }
 ```
 
@@ -756,17 +756,17 @@ struct TimerFeature {
 
 ```swift
 var body: some ReducerOf<Self> {
-		Reduce { state, action in
-		    switch action {  switch action {
-				case .start: 
-						fatalError("Not implemented")
-				case .timeUpdated:
-				    state.duration += 0.01
-				    return .none
-			  case .stop:
-				    fatalError("Not implemented")
-			  }
-			}
+    Reduce { state, action in
+        switch action {  switch action {
+        case .start: 
+            fatalError("Not implemented")
+        case .timeUpdated:
+            state.duration += 0.01
+            return .none
+        case .stop:
+            fatalError("Not implemented")
+        }
+    }
 }
 ```
 
@@ -824,25 +824,23 @@ let timerReducer = Reducer<TimerState, TimerAction, TimerEnvironment> {
 @Dependency(\.date) var date
 @Dependency(\.continuousClock) var clock
 
-		var body: some ReducerOf<Self> {
-        Reduce { state, action in
-            switch action {
-            case .start:
-                if state.started == nil {
-                    state.started = date()
-                    state.duration = 0
+var body: some ReducerOf<Self> {
+    Reduce { state, action in
+        switch action {
+        case .start:
+            if state.started == nil {
+                state.started = date()
+                state.duration = 0
+            }
+            return .run { send in
+                for await _ in self.clock.timer(interval: .milliseconds(10)) {
+                    await send(.timeUpdated)
                 }
-                return .run { send in
-                    for await _ in self.clock.timer(
-                        interval: .milliseconds(10))
-                    {
-                        await send(.timeUpdated)
-                    }
-                }
-                .cancellable(id: TimerID())
-						case .timeUpdated:
-                state.duration += 0.01
-                return .none
+            }
+            .cancellable(id: TimerID())
+        case .timeUpdated:
+            state.duration += 0.01
+            return .none
             // ...
 ```
 
@@ -2032,19 +2030,19 @@ case .setNavigation(.none):
 ```swift
 @Reducer
 struct GameFeature {
-		@Dependency(\.mainQueue) var mainQueue
+    @Dependency(\.mainQueue) var mainQueue
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            ...
+            // ...
             case .alertAction(.presented(.alertSaveButtonTapped)):
                 state.savingResults = true
                 return .run { send in
-										try await mainQueue.sleep(for: .seconds(2))
+                    try await mainQueue.sleep(for: .seconds(2))
                     await send(.saveResult(.success(Void())))
                 }
-						...
+            // ...
             case .saveResult(let result):
                 state.savingResults = false
                 if let newState = state.resultListState?.value {
@@ -2064,7 +2062,7 @@ struct GameFeature {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(
-                    ...
+                    // ...
                     }, label: {
                         if store.savingResults {
                             ProgressView()

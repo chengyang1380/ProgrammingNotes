@@ -899,7 +899,7 @@ struct TimerLabel: View {
 
 而且我們可以很簡單的在 preview 上測試結果
 
-![ezgif-1b1f2ece92492b.gif](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/SwiftUI/SwiftUI%20%2B%20TCA%20(Onevcat)/ezgif-1b1f2ece92492b.gif)
+![ezgif-1b1f2ece92492b.gif](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/SwiftUI/SwiftUI%20%2B%20TCA%20(Onevcat)/ezgif-1b1f2ece92492b.gif?raw=true)
 
 ```swift
 #Preview {
@@ -1609,7 +1609,7 @@ struct GameView: View {
 
 這時就可以執行專案看看，玩了幾場猜數字後，可以到 Detail 頁面查看結果，而且跟 GameView 的資料是有連動的，全部刪除後會發現最上面的 Result label 有變回 0/0 correct。
 
-[Screen Recording 2025-05-04 at 17.04.46.gif](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/SwiftUI/SwiftUI%20%2B%20TCA%20(Onevcat)/Screen_Recording_2025-05-04_at_17.04.46.gif)
+![Screen Recording 2025-05-04 at 17.04.46.gif](https://raw.githubusercontent.com/chengyang1380/ProgrammingNotes/refs/heads/main/Images/SwiftUI/SwiftUI%20%2B%20TCA%20(Onevcat)/Screen_Recording_2025-05-04_at_17.04.46.gif?raw=true)
 
 pullback (新版改用 Scope）的行為
 
@@ -2078,7 +2078,7 @@ struct GameFeature {
 
 結果就出來了
 
-[Screen Recording 2025-05-18 at 14.58.52.gif](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/SwiftUI/SwiftUI%20%2B%20TCA%20(Onevcat)/Screen_Recording_2025-05-18_at_14.58.52.gif)
+![Screen Recording 2025-05-18 at 14.58.52.gif](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/SwiftUI/SwiftUI%20+%20TCA%20(Onevcat)/Screen_Recording_2025-05-18_at_14.58.52.gif?raw=true)
 
 ## 總結
 

@@ -1,4 +1,4 @@
-# Meet Swift Testing | Apple
+# Meet Swift Testing
 
 ![New Zealand — Deer Park Heights Queenstown](https://github.com/chengyang1380/ProgrammingNotes/blob/main/Images/WWDC/WWDC24/Meet%20Swift%20Testing/IMG_8347.jpg?raw=true)
 New Zealand — Deer Park Heights Queenstown

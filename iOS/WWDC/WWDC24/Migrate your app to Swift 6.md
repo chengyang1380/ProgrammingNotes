@@ -42,7 +42,7 @@ New Zealand — Deer Park Heights Queenstown
 - Enable Swift 6
 - Audit unsafe opt-outs
 
-> **Tip：**Do not try to do significant refactoring (like migrating to Swift concurrency) AND enabling data-race safety at the same time. Go one at a time.
+> **Tip：** Do not try to do significant refactoring (like migrating to Swift concurrency) AND enabling data-race safety at the same time. Go one at a time.
 建議不要一次就大規模重構和實現 data race safety，一次僅嘗試執行一個操作 ，例如一次就一個 target 調整
 > 
 
@@ -259,28 +259,27 @@ WWDC21 - Swift concurrency: Update a sample app
 ```swift
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-		    // Swift 6 以下這樣沒事，但用 Swift 6 會 crash
-				UNUserNotificationCenter
-						.current()
-						.requestAuthorization(options: [.alert, .sound, .badge]) { (_, _) in
-						// ...
-				}
+		// Swift 6 以下這樣沒事，但用 Swift 6 會 crash
+		UNUserNotificationCenter
+			.current()
+			.requestAuthorization(options: [.alert, .sound, .badge]) { (_, _) in
+				// ...
+			}
 				
 				// 在 Swift 6 之後需要改成 async/await
-				Task {
-						do {
-						    let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
-								print("授權成功：", granted)
-					  } catch {
-						    print("授權失敗：", error)
-					  }
+			Task {
+				do {
+					let granted = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+					print("授權成功：", granted)
+				} catch {
+					print("授權失敗：", error)
 				}
+			}
 				
-				// 或者像 ATTrackingManager 也是
-				Task {
-				    let status = await ATTrackingManager.requestTrackingAuthorization()
-				}
-				
+			// 或者像 ATTrackingManager 也是
+			Task {
+				let status = await ATTrackingManager.requestTrackingAuthorization()
+			}
 		}
 }
 ```

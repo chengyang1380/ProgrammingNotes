@@ -122,7 +122,7 @@ struct ClassExistentialContainer {
 ```
 
 - `value` 指向 Heap 內存的指針
-- `witness` PWD 指針
+- `witness` PWT 指針
 
 來看一個例子
 
@@ -206,6 +206,9 @@ bb0(%0 : $*Int, %1 : $*Int):
 ```
 
 所以簡單來說就是能用 generic 就不要用 protocol 當作型別，因為效能更佳。
+
+> **💡 補充觀念：泛型特化的代價 (Trade-off)**
+> 雖然泛型特化可以將動態派發轉為靜態派發，大幅提升「執行速度」，但這是有代價的。因為編譯器會為每一個被使用到的具體型別（例如 `Int`, `String`）複製並生成一份專屬的機器碼。如果過度依賴泛型且型別組合過多，會導致 **Code Bloat (程式碼膨脹)**，進而增加 App 最終的體積 (Binary Size)。相對地，Existential (`any`) 雖然有動態派發的開銷，但多個型別可以共用同一份編譯好的程式碼，對控制 App 體積是有幫助的。這是一個「執行時間」與「空間」的取捨。
 
 ### 效能小結
 
@@ -487,7 +490,13 @@ struct ContentView: View {
 }
 ```
 
-從這個 print 出來的結果 `AnyView` 就知道，雖然他看起來是回 `Text` 或 `Button` 但他最後都會變成 `AnyView` 這是一種 type erasure 的做法，讓所有型別最後轉換成同個通用的東西
+如果我們實際去執行這段 code 並 print 出它的型別，結果會是 _ConditionalContent<Text, Button<Text>>，而絕對不是 AnyView。
+
+這裡要特別注意一個常見的誤區：@ViewBuilder 並沒有做 Type Erasure（型別抹除）把它變成 AnyView。
+
+相反地，@ViewBuilder (背後的機制是 Result Builder) 是在編譯期，將 if-else 的各個分支打包成一個全新的、具體的靜態型別 _ConditionalContent。這種做法保留了完整的靜態型別資訊，這正是 SwiftUI 能夠高效進行 Diff 計算與 UI 更新的關鍵。
+
+如果真的被抹除成 AnyView (真正的 Type Erasure)，反而會將 View 裝箱並分配到 Heap 上，破壞靜態型別樹並帶來嚴重的效能損耗。因此 @ViewBuilder 的存在，正是為了讓我們可以在保留靜態型別的同時，寫出類似動態回傳的語法。
 
 我們可以從 View 的定義開始看，其中 `body` 的部分有一個 `@ViewBuilder` 的修飾
 
@@ -1017,9 +1026,13 @@ struct Farm {
         animal.eat(feed)
     }
 
+    // 其實，這段程式碼在 Swift 5.7 之前是會編譯失敗的！
+    // 因為 any Animal 是一個動態的箱子 (Existential Box)，而 some Animal 期待的是一個靜態的具體型別，兩者並不匹配。這段程式碼之所以現在能順利編譯，歸功於 Swift 5.7 引入的 Implicitly Opened Existentials 特性。
+    // 當我們將 any 傳遞給泛型參數 some 時，編譯器會在底層自動幫我們把 any 的箱子「打開」，取出裡面具體的型別再傳遞進去。
+    // 這項特性完美解釋了為什麼在 Swift 6 時代，any 和 some 可以如此無縫接軌地混用，也大大降低了開發者操作抽象型別的心智負擔
     func feedAll(_ animals: [any Animal]) {
         for animal in animals {
-            feed(animal)
+            feed(animal) // ⚠️ 將 any Animal 傳給 some Animal
         }
     }
 }
